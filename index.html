@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prompt Builder</title>
+  <meta name="description" content="Fill in persona, task, context, format, examples and advanced techniques, then copy one clean prompt into any AI.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧩</text></svg>">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <h1>Prompt Builder</h1>
+      <p class="sub">Fill each tab, then copy one clean prompt into any AI. <span id="autosave" class="muted small" aria-live="polite"></span></p>
+    </div>
+  </header>
+
+  <nav class="tabs-bar" aria-label="Prompt sections">
+    <div class="wrap tabs" id="tabs" role="tablist"></div>
+  </nav>
+
+  <main class="wrap">
+    <!-- Section panels are generated from js/sections.js -->
+    <div id="section-panels"></div>
+
+    <!-- Preview & Copy (fixed panel) -->
+    <section class="panel" role="tabpanel" id="panel-preview" data-panel="preview" aria-labelledby="tab-preview" hidden>
+      <h2>Preview &amp; Copy</h2>
+
+      <div id="checks-wrap" class="card checks-card">
+        <h3>Clarity check</h3>
+        <ul id="checks" class="checks"></ul>
+      </div>
+
+      <div class="output-head">
+        <span id="counts" class="muted small"></span>
+        <button id="copy-btn" type="button" class="btn btn-primary">Copy prompt</button>
+      </div>
+      <pre id="output" class="output" tabindex="0"></pre>
+
+      <div class="card">
+        <h3>Prompt library</h3>
+        <p class="muted small">Found a prompt that works? Save it so you can reuse it.</p>
+        <form id="save-form" class="save-row">
+          <label for="save-name" class="sr-only">Prompt name</label>
+          <input id="save-name" type="text" placeholder="Name, e.g. Outage apology email" maxlength="120">
+          <button type="submit" class="btn btn-secondary">Save</button>
+        </form>
+        <ul id="library-list" class="library"></ul>
+        <div class="lib-tools">
+          <button id="export-btn" type="button" class="btn btn-ghost btn-sm">Export JSON</button>
+          <label class="btn btn-ghost btn-sm file-btn">Import JSON<input id="import-input" type="file" accept="application/json,.json" hidden></label>
+          <button id="clear-btn" type="button" class="btn btn-ghost btn-sm danger">Clear all tabs</button>
+        </div>
+      </div>
+
+      <div class="panel-nav">
+        <button id="back-btn" type="button" class="btn btn-ghost">← Back</button>
+        <span></span>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap footer muted small">
+    Techniques from NetworkChuck's "You SUCK at Prompting AI". Everything stays in your browser. Nothing is uploaded.
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
