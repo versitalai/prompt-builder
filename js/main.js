@@ -3,18 +3,31 @@
 import { SECTIONS } from './sections.js';
 import { buildPrompt, runChecks, sectionHasContent, wordCount, defaultValues } from './builder.js';
 import * as store from './storage.js';
-import { el, renderTabs, setActiveTab, setTabDots, renderSectionPanel, toast, PREVIEW_ID } from './ui.js';
+import { icon } from './icons.js';
+import { el, withIcon, renderTabs, setActiveTab, setTabDots, renderSectionPanel, alertBox, toast, PREVIEW_ID } from './ui.js';
 
 const TAB_ORDER = [...SECTIONS.map((s) => s.id), PREVIEW_ID];
+const COPY_BUTTONS = ['copy-btn', 'top-copy', 'side-copy', 'mb-copy'];
 let values = store.loadDraft();
 let active = SECTIONS[0].id;
 
 const $ = (id) => document.getElementById(id);
+const hasContent = (id) => sectionHasContent(id, values);
+
+// ---------- Static chrome (icons on fixed buttons) ----------
+function decorate() {
+  $('brand-mark').append(icon('logo', 18));
+  $('tip-card-icon').append(icon('bulb', 16));
+  COPY_BUTTONS.forEach((id) => $(id).append(...withIcon('copy', id === 'copy-btn' || id === 'side-copy' ? 'Copy prompt' : 'Copy')));
+  $('export-btn').append(...withIcon('download', 'Export JSON'));
+  $('import-label').prepend(...withIcon('upload', 'Import JSON'));
+  $('clear-btn').append(...withIcon('trash', 'Clear all tabs'));
+  $('back-btn').append(...withIcon('arrowLeft', 'Back'));
+}
 
 // ---------- Render ----------
 function renderSections() {
-  const host = $('section-panels');
-  host.replaceChildren(...SECTIONS.map((s, i) => renderSectionPanel(s, i, values, onFieldChange, (dir) => go(dir))));
+  $('section-panels').replaceChildren(...SECTIONS.map((s, i) => renderSectionPanel(s, i, values, onFieldChange, go)));
 }
 
 function go(dir) {
@@ -25,37 +38,59 @@ function go(dir) {
 function select(id) {
   active = id;
   setActiveTab(id);
+  $('crumb').textContent = id === PREVIEW_ID ? 'Preview & Copy' : SECTIONS.find((s) => s.id === id).label;
   if (id === PREVIEW_ID) refreshPreview();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+/** Summary panel, mobile bar, copy buttons, tab dots. Cheap: runs on every keystroke. */
+function refreshSummary() {
+  const prompt = buildPrompt(values);
+  const words = wordCount(prompt);
+  const filled = SECTIONS.filter((s) => hasContent(s.id)).length;
+  const warnIds = new Set(runChecks(values).filter((c) => c.level === 'warn').map((c) => c.sectionId));
+
+  $('stat-words').textContent = words;
+  $('mb-words').textContent = words;
+  $('stat-sections').textContent = `${filled}/${SECTIONS.length}`;
+  COPY_BUTTONS.forEach((id) => { $(id).disabled = !prompt; });
+
+  $('summary-list').replaceChildren(...SECTIONS.map((s) => {
+    const done = hasContent(s.id);
+    const pill = done
+      ? el('span', { class: 'pill pill-ok' }, 'Filled')
+      : warnIds.has(s.id) ? el('span', { class: 'pill pill-warn' }, 'Needed') : el('span', { class: 'pill pill-empty' }, 'Empty');
+    return el('li', {}, el('button', { type: 'button', class: 'summary-item', onclick: () => select(s.id) },
+      icon(s.icon, 16), el('span', { class: 'lbl' }, s.label), pill));
+  }));
+  setTabDots(hasContent);
+}
+
 function refreshPreview() {
   const prompt = buildPrompt(values);
-  $('output').textContent = prompt || '(Empty. Fill in some tabs first.)';
-  $('output').classList.toggle('empty', !prompt);
+  const out = $('output');
+  out.textContent = prompt || 'Nothing here yet. Fill in a few tabs and your prompt appears here.';
+  out.classList.toggle('empty', !prompt);
   $('counts').textContent = `${wordCount(prompt)} words · ${prompt.length} characters`;
-  $('copy-btn').disabled = !prompt;
 
   const checks = runChecks(values);
-  const list = $('checks');
-  list.replaceChildren(...checks.map((c) => el('li', { class: `check check-${c.level}` },
-    el('button', { type: 'button', class: 'link', onclick: () => select(c.sectionId) }, c.section), ` — ${c.text}`)));
+  $('checks').replaceChildren(...checks.map((c) => alertBox(c.level, c.section, c.text,
+    el('button', { type: 'button', class: 'link', onclick: () => select(c.sectionId) }, `Go to ${c.section} →`))));
   $('checks-wrap').hidden = checks.length === 0;
 }
 
 function renderLibrary(lib = store.loadLibrary()) {
-  const list = $('library-list');
+  const body = $('library-list');
   if (!lib.length) {
-    list.replaceChildren(el('li', { class: 'muted' }, 'No saved prompts yet.'));
+    body.replaceChildren(el('tr', { class: 'empty-row' }, el('td', { colspan: '3' }, 'No saved prompts yet.')));
     return;
   }
-  list.replaceChildren(...lib.map((e) => el('li', { class: 'lib-item' },
-    el('div', {},
-      el('strong', {}, e.name),
-      el('div', { class: 'muted small' }, new Date(e.savedAt).toLocaleString())),
-    el('div', { class: 'lib-actions' },
+  body.replaceChildren(...lib.map((e) => el('tr', { class: 'lib-item' },
+    el('td', { class: 'lib-name' }, e.name),
+    el('td', { class: 'muted' }, new Date(e.savedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })),
+    el('td', { class: 't-right' },
       el('button', { type: 'button', class: 'btn btn-secondary btn-sm', onclick: () => loadEntry(e) }, 'Load'),
-      el('button', { type: 'button', class: 'btn btn-ghost btn-sm', onclick: () => deleteEntry(e) }, 'Delete')))));
+      el('button', { type: 'button', class: 'btn btn-ghost btn-sm btn-icon btn-danger', title: 'Delete', 'aria-label': `Delete ${e.name}`, onclick: () => deleteEntry(e) }, icon('trash', 15))))));
 }
 
 // ---------- State changes ----------
@@ -63,18 +98,19 @@ let saveTimer;
 function onFieldChange(sectionId, fieldId, value) {
   values[sectionId][fieldId] = value;
   clearTimeout(saveTimer);
+  $('autosave').textContent = 'Saving…';
   saveTimer = setTimeout(() => {
     const ok = store.saveDraft(values);
-    $('autosave').textContent = ok ? 'Autosaved' : 'Autosave unavailable in this browser';
+    $('autosave').textContent = ok ? 'All changes saved' : 'Autosave unavailable in this browser';
   }, 400);
-  setTabDots((id) => sectionHasContent(id, values));
+  refreshSummary();
 }
 
 function replaceAll(next) {
   values = next;
   store.saveDraft(values);
   renderSections();
-  setTabDots((id) => sectionHasContent(id, values));
+  refreshSummary();
   select(active);
 }
 
@@ -92,7 +128,7 @@ function deleteEntry(e) {
 }
 
 function confirmReplace() {
-  const dirty = SECTIONS.some((s) => sectionHasContent(s.id, values));
+  const dirty = SECTIONS.some((s) => hasContent(s.id));
   return !dirty || window.confirm('Replace what you have now? (Save it to your library first if you want to keep it.)');
 }
 
@@ -142,7 +178,7 @@ async function importJson(ev) {
     const res = store.importData(await file.text());
     renderLibrary(res.library);
     if (res.draft && window.confirm('This file also has a draft. Load it into the editor?')) replaceAll(res.draft);
-    toast(`Imported ${res.total} prompt(s) (${res.added} new)`);
+    toast(`Imported ${res.total} prompt(s), ${res.added} new`);
   } catch (err) {
     toast(`Import failed: ${err.message}`, 'error');
   }
@@ -157,13 +193,15 @@ function clearAll() {
 }
 
 // ---------- Boot ----------
+decorate();
 renderTabs($('tabs'), select);
 renderSections();
-setTabDots((id) => sectionHasContent(id, values));
+refreshSummary();
 renderLibrary();
 select(active);
 
-$('copy-btn').addEventListener('click', copyPrompt);
+COPY_BUTTONS.forEach((id) => $(id).addEventListener('click', copyPrompt));
+$('side-preview').addEventListener('click', () => select(PREVIEW_ID));
 $('save-form').addEventListener('submit', savePrompt);
 $('export-btn').addEventListener('click', exportJson);
 $('import-input').addEventListener('change', importJson);

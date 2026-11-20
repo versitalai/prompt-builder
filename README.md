@@ -26,6 +26,8 @@ Empty tabs are left out of the final prompt.
 - **Prompt library**: name and save prompts that work, then load them later.
 - **Export / import JSON**: back up your library or move it to another device.
 - **Clarity check**: warns when key parts are missing (for example, no context means hallucination risk).
+- **Prompt summary panel**: shows which sections are filled, live word count, and Copy from any tab.
+- Light and dark mode follow your system setting.
 - Works on phones. No accounts, no server, nothing uploaded.
 
 ## Run locally
@@ -50,12 +52,14 @@ The site appears at `https://<user>.github.io/prompt-builder/` within a minute o
 
 ## Adding or changing a tab
 
-Edit **only** `js/sections.js`. Add an object to `SECTIONS`:
+Edit **only** `js/sections.js`. Add an object to `SECTIONS` (pick an `icon` from `js/icons.js`):
 
 ```js
 {
   id: 'audience',            // unique, used in saved data
   label: 'Audience',         // tab name
+  icon: 'user',              // sidebar icon
+  subtitle: 'Who reads it',  // line under the title
   heading: 'Audience',       // ## heading in the output
   tip: 'Why this matters…',  // teaching text at top of tab
   fields: [{ id: 'who', type: 'text', label: 'Who reads this?' }],

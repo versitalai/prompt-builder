@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.1.0 — 2026-11-20
+
+Full UI redesign, based on reference designs the user supplied (dashboard form, settings page, component kit).
+
+- Layout: left sidebar nav with filled checkmarks; content in cards; right "Prompt summary" panel with per-section status pills (Filled / Needed / Empty), word and section counts, Copy and Open preview.
+- Checkboxes became settings-style toggle switches with a description line (`hint`).
+- Options that appear when a toggle is on sit inside that toggle's group.
+- Short fields sit side by side (`half: true`); they stack on mobile.
+- Clarity check uses alert cards with "Go to …" links; the library is a table.
+- Copy works from any tab (top bar, summary panel, mobile bottom bar).
+- Mobile: compact one-row header with logo + scrolling pills; sticky bottom bar with word count + Copy.
+- New `js/icons.js` (inline SVG line icons). Inter + JetBrains Mono fonts, with system-font fallback.
+- Sage-green theme tokens in `:root`; dark mode follows the system setting.
+- Even spacing: 4px-grid scale (`--sp-1`…`--sp-6`). Gaps come from parent `gap`, never sibling margins. Checked by `tools/spacing_audit.py` (0 mismatches desktop + mobile).
+
 ## 1.0.0 — 2026-11-16
 
 First release.

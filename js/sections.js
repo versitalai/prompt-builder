@@ -2,9 +2,13 @@
 //
 // Each section = one tab in the UI + one block in the final prompt.
 // Shape:
+//   (text fields may have `half: true` to sit side by side;
+//    checkbox fields may have `hint`: small grey description under the label)
 //   id       unique key (used in saved state — don't rename casually)
 //   label    tab name
 //   heading  markdown heading in the output prompt
+//   icon     icon name from js/icons.js (sidebar + summary)
+//   subtitle one-line description under the page title
 //   tip      teaching text shown at top of the tab
 //   fields   inputs (types: text | textarea | checkbox | list)
 //   build(v) -> string   turns this tab's values into prompt text ('' = skip)
@@ -24,12 +28,14 @@ const numbered = (arr) => arr.map((x, i) => `${i + 1}. ${x}`).join('\n');
 export const SECTIONS = [
   {
     id: 'persona',
+    icon: 'user',
+    subtitle: 'Who is answering, and who are they talking to?',
     label: 'Persona',
     heading: 'Role',
     tip: 'Who is answering? AI "can be anybody, also nobody." Pick the expert you would actually ask. This narrows which knowledge the model draws from.',
     fields: [
-      { id: 'role', type: 'text', label: 'You are…', placeholder: 'a senior site reliability engineer at Cloudflare' },
-      { id: 'audience', type: 'text', label: 'Writing for…', placeholder: 'both customers and engineers' },
+      { id: 'role', type: 'text', half: true, label: 'You are…', placeholder: 'a senior site reliability engineer at Cloudflare' },
+      { id: 'audience', type: 'text', half: true, label: 'Writing for…', placeholder: 'both customers and engineers' },
       { id: 'perspective', type: 'textarea', label: 'Extra expertise / perspective (optional)', placeholder: '10 years running incident response; values radical transparency' },
     ],
     build(v) {
@@ -46,6 +52,8 @@ export const SECTIONS = [
 
   {
     id: 'task',
+    icon: 'target',
+    subtitle: 'What you want done, and what a good result looks like.',
     label: 'Task',
     heading: 'Task',
     tip: 'Think first, prompt second. If you can\'t explain it clearly yourself, you can\'t prompt it. Write the goal like you\'re handing it to a human.',
@@ -66,14 +74,16 @@ export const SECTIONS = [
 
   {
     id: 'context',
+    icon: 'book',
+    subtitle: 'The facts the AI needs so it doesn\'t have to guess.',
     label: 'Context',
     heading: 'Context',
     tip: 'Most important technique. Whatever you leave out, the model fills in by guessing. More context = fewer hallucinations. Always be contexting.',
     fields: [
       { id: 'facts', type: 'textarea', label: 'Background facts', rows: 6, placeholder: 'On Nov 18, a bad config file doubled in size and crashed our proxy. ~20% of traffic failed for 3 hours…' },
       { id: 'constraints', type: 'textarea', label: 'Constraints (one per line)', placeholder: 'Don\'t blame any vendor\nDon\'t promise dates we can\'t keep' },
-      { id: 'allowUnknown', type: 'checkbox', label: 'Give permission to say "I don\'t know" (top hallucination fix)', default: true },
-      { id: 'useSearch', type: 'checkbox', label: 'Tell it to search the web for current info', default: false },
+      { id: 'allowUnknown', type: 'checkbox', label: 'Allow "I don\'t know"', hint: 'The #1 hallucination fix. Without it, the AI guesses to please you.', default: true },
+      { id: 'useSearch', type: 'checkbox', label: 'Search the web', hint: 'For anything after the model\'s training cutoff. Watch for bad sources.', default: false },
     ],
     build(v) {
       const out = [];
@@ -91,15 +101,17 @@ export const SECTIONS = [
 
   {
     id: 'format',
+    icon: 'layout',
+    subtitle: 'Exactly how the answer should look.',
     label: 'Format',
     heading: 'Output format',
     tip: 'Tell it exactly how the result should look. Easy to forget, biggest punch. Tone alone can turn the same facts into a calm memo or a panicked rant.',
     fields: [
-      { id: 'outputType', type: 'text', label: 'Output type', placeholder: 'email with subject line' },
-      { id: 'length', type: 'text', label: 'Length', placeholder: 'under 200 words' },
-      { id: 'tone', type: 'text', label: 'Tone', placeholder: 'professional, apologetic, radically transparent' },
+      { id: 'outputType', type: 'text', half: true, label: 'Output type', placeholder: 'email with subject line' },
+      { id: 'length', type: 'text', half: true, label: 'Length', placeholder: 'under 200 words' },
+      { id: 'tone', type: 'text', half: true, label: 'Tone', placeholder: 'professional, apologetic, radically transparent' },
+      { id: 'avoid', type: 'text', half: true, label: 'Avoid', placeholder: 'corporate fluff, buzzwords' },
       { id: 'structure', type: 'textarea', label: 'Structure (one item per line)', placeholder: 'Subject line\nBulleted timeline\nWhat we\'re changing' },
-      { id: 'avoid', type: 'text', label: 'Avoid', placeholder: 'corporate fluff, buzzwords' },
     ],
     build(v) {
       const out = [];
@@ -119,6 +131,8 @@ export const SECTIONS = [
 
   {
     id: 'examples',
+    icon: 'quote',
+    subtitle: 'Show the AI what good looks like.',
     label: 'Examples',
     heading: 'Examples',
     tip: 'Few-shot: show, don\'t describe. Short snippets of each quality you want (tone, timeline, technical detail) beat whole documents, which get noisy.',
@@ -152,15 +166,17 @@ export const SECTIONS = [
 
   {
     id: 'advanced',
+    icon: 'sparkles',
+    subtitle: 'Optional techniques for harder problems.',
     label: 'Advanced',
     heading: 'Approach',
     tip: 'Optional. Chain of thought = show your work. Tree of thoughts = try several paths, keep the best. Battle of the bots = drafts get critiqued (AI critiques better than it writes).',
     fields: [
-      { id: 'cot', type: 'checkbox', label: 'Chain of thought: think step by step first', default: false },
+      { id: 'cot', type: 'checkbox', label: 'Chain of thought', hint: 'Think step by step before answering. More accuracy, and you can see its work.', default: false },
       { id: 'cotSteps', type: 'textarea', label: 'Steps to follow (one per line, optional)', placeholder: 'List the facts\nIdentify what the customer cares about most\nDraft\nCheck every claim against the context', showIf: 'cot' },
-      { id: 'tot', type: 'checkbox', label: 'Tree of thoughts: explore approaches, combine the best', default: false },
+      { id: 'tot', type: 'checkbox', label: 'Tree of thoughts', hint: 'Explore several approaches, compare them, combine the best parts.', default: false },
       { id: 'totBranches', type: 'textarea', label: 'Approaches (one per line; blank = AI picks 3)', placeholder: 'Radical transparency\nCustomer empathy first\nFuture-focused assurance', showIf: 'tot' },
-      { id: 'battle', type: 'checkbox', label: 'Battle of the bots: drafts, critique, final', default: false },
+      { id: 'battle', type: 'checkbox', label: 'Battle of the bots', hint: 'Personas write drafts, a critic tears them apart, then they write one final version.', default: false },
       { id: 'battlePersonas', type: 'textarea', label: 'Personas (one per line; LAST one is the critic)', placeholder: 'Engineer\nPR crisis manager\nAngry customer', showIf: 'battle' },
     ],
     build(v) {
