@@ -3,7 +3,7 @@
 ## 1.2.0 — 2026-11-20
 
 - **Section preview** on every tab: live view of exactly what that tab adds (markdown block), an Included/Skipped pill, and "Part X of Y" position in the final prompt.
-- **Presets** ("What are you making?"), 14 across 5 groups:
+- **Presets** ("What are you making?"), 15 across 6 groups:
   General · Writing (Email / message, Essay / article, Social post) · Creative (Story, Image prompt) ·
   Code (Roblox / Luau script, Code feature, Debug an error) · Study (Explain a concept, Quiz / flashcards) ·
   Plans & data (Game design doc, Project plan, Data → table / JSON, Research summary).
