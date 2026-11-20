@@ -33,8 +33,11 @@
 
       <div class="content">
         <div class="col-main">
+          <!-- Preset picker (js/presets.js) -->
+          <div class="card preset-bar" id="preset-bar"></div>
+
           <!-- Section panels are generated from js/sections.js -->
-          <div id="section-panels"></div>
+          <div id="section-panels" class="contents"></div>
 
           <!-- Preview & Copy -->
           <section class="panel" role="tabpanel" id="panel-preview" data-panel="preview" aria-labelledby="tab-preview" hidden>
@@ -67,7 +70,7 @@
               </div>
               <form id="save-form" class="save-row">
                 <label for="save-name" class="sr-only">Prompt name</label>
-                <input id="save-name" class="input" type="text" placeholder="Name, e.g. Outage apology email" maxlength="120">
+                <input id="save-name" class="input" type="text" placeholder="Name, e.g. Roblox shop system" maxlength="120">
                 <button type="submit" class="btn btn-secondary">Save prompt</button>
               </form>
               <div class="table-wrap">

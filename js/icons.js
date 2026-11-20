@@ -19,6 +19,7 @@ const PATHS = {
   download: '<path d="M12 4v11M7 10l5 5 5-5M4 20h16"/>',
   upload: '<path d="M12 20V9M7 14l5-5 5 5M4 4h16"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
+  chevron: '<path d="M6 9l6 6 6-6"/>',
   arrowLeft: '<path d="M19 12H5M11 6l-6 6 6 6"/>',
   arrowRight: '<path d="M5 12h14M13 6l6 6-6 6"/>',
   logo: '<path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-7l-4 3v-3H6a2 2 0 0 1-2-2z"/><path d="M8 9h8M8 12h5"/>',

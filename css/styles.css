@@ -120,7 +120,8 @@ h1, h2, h3 { letter-spacing: -0.01em; line-height: 1.25; }
   display: grid; grid-template-columns: minmax(0, 1fr) var(--side-w); gap: var(--sp-6); align-items: start;
   width: 100%; max-width: 1200px; padding: var(--page-pad);
 }
-.col-main { min-width: 0; }
+.col-main { min-width: 0; display: flex; flex-direction: column; gap: var(--sp-6); }
+.contents { display: contents; }
 .col-side { position: sticky; top: calc(var(--topbar-h) + var(--page-pad)); display: flex; flex-direction: column; gap: var(--sp-6); }
 .footer { max-width: 1200px; padding: 0 var(--page-pad) var(--page-pad); }
 
@@ -156,6 +157,31 @@ h1, h2, h3 { letter-spacing: -0.01em; line-height: 1.25; }
 .card-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-4); }
 .card-head > div { display: flex; flex-direction: column; gap: var(--sp-1); }
 .card-title { font-size: 1.02rem; font-weight: 600; }
+
+/* ---------- Preset bar ---------- */
+.preset-bar { flex-direction: row; align-items: center; justify-content: space-between; gap: var(--sp-4); padding: var(--sp-4) var(--card-pad); }
+.preset-text { display: flex; flex-direction: column; gap: var(--sp-1); min-width: 0; }
+.preset-text .field-label { color: var(--text); font-size: 0.9rem; }
+.preset-controls { display: flex; gap: var(--sp-2); flex: 0 0 auto; }
+.select-wrap { position: relative; }
+.select {
+  appearance: none; -webkit-appearance: none; height: var(--control-h); min-width: 220px; padding: 0 calc(var(--sp-4) + 24px) 0 var(--sp-4);
+  border: 1px solid var(--border-strong); border-radius: var(--r-sm); background: var(--surface); color: var(--text);
+  font: inherit; font-size: 0.9rem; font-weight: 600; cursor: pointer;
+}
+.select:hover { border-color: var(--accent); }
+.select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.select-wrap .icon { position: absolute; right: var(--sp-3); top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--muted); }
+
+/* ---------- Suggestion chips ---------- */
+.chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.chip {
+  height: 28px; padding: 0 var(--sp-3); border: 1px solid var(--border); border-radius: 999px;
+  background: var(--surface); color: var(--text-2); font: inherit; font-size: 0.8rem; font-weight: 500; cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.chip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* ---------- Alerts (tip + clarity check) ---------- */
 .checks { display: flex; flex-direction: column; gap: var(--sp-3); }
@@ -282,6 +308,14 @@ h1, h2, h3 { letter-spacing: -0.01em; line-height: 1.25; }
   font: 0.84rem/1.65 var(--mono); white-space: pre-wrap; word-break: break-word; color: var(--text);
 }
 .output.empty { color: var(--muted); font-family: var(--font); display: grid; place-items: center; text-align: center; }
+.output-sm { min-height: 0; max-height: 40vh; }
+.output-sm.empty { min-height: 72px; font-size: 0.85rem; }
+/* Light prompt syntax colouring (display only; copy uses the raw text) */
+.md-h2 { color: var(--accent); font-weight: 600; }
+.md-h3 { color: var(--text); font-weight: 600; }
+.md-quote { color: var(--text-2); }
+.md-li { color: var(--text); }
+.section-preview { background: var(--surface); border-style: dashed; box-shadow: none; }
 
 /* ---------- Library table ---------- */
 .save-row { display: flex; gap: var(--sp-2); }
@@ -315,6 +349,13 @@ h1, h2, h3 { letter-spacing: -0.01em; line-height: 1.25; }
 /* ---------- Responsive ---------- */
 @media (max-width: 1080px) {
   :root { --side-w: 264px; }
+}
+
+@media (max-width: 1200px) {
+  .preset-bar { flex-direction: column; align-items: stretch; }
+  .preset-controls { flex-wrap: wrap; }
+  .select-wrap { flex: 1; }
+  .select { width: 100%; min-width: 0; }
 }
 
 @media (max-width: 900px) {
@@ -353,6 +394,9 @@ h1, h2, h3 { letter-spacing: -0.01em; line-height: 1.25; }
   .field-row { grid-template-columns: 1fr; }
   .save-row { flex-direction: column; }
   .card-head { flex-direction: column; align-items: stretch; }
+  .section-preview .card-head { flex-direction: row; align-items: flex-start; }
+  .preset-controls { flex-direction: column; }
+  .preset-controls .btn { width: 100%; }
   .lib-tools .btn-danger { margin-left: 0; }
   .table th:nth-child(2), .table td:nth-child(2) { display: none; }
 }

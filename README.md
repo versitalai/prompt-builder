@@ -22,6 +22,9 @@ Empty tabs are left out of the final prompt.
 
 ## Features
 
+- **Presets**: pick what you're making (game design doc, Roblox script, essay, quiz, image prompt, and more). Placeholders and suggestion chips change to match, and **Fill example** loads a complete worked example.
+- **Section preview**: every tab shows exactly what it adds to the final prompt, live.
+
 - **Autosave**: your inputs survive a page refresh (stored in your browser).
 - **Prompt library**: name and save prompts that work, then load them later.
 - **Export / import JSON**: back up your library or move it to another device.
@@ -69,3 +72,7 @@ Edit **only** `js/sections.js`. Add an object to `SECTIONS` (pick an `icon` from
 ```
 
 The tab, inputs, autosave, library, export and preview all pick it up automatically. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+## Adding a preset
+
+Add one object to `PRESETS` in `js/presets.js` (see the existing ones). Run `npm test`: it checks every key is valid.

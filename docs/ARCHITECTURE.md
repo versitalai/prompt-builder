@@ -10,6 +10,7 @@ js/builder.js       PURE LOGIC: defaults, normalize, buildPrompt, checks   (no D
 js/storage.js       localStorage: draft autosave, library, export/import
 js/ui.js            DOM rendering, generic over sections.js (layout rules at top of file)
 js/icons.js         inline SVG icon set (static strings only)
+js/presets.js       DATA: use-case presets (placeholders, chips, example toggles)  ← edit to add presets
 js/main.js          wiring: state, events, actions
 tests/              node:test unit tests for builder.js
 tools/              spacing_audit.py (Playwright layout check)
@@ -67,6 +68,16 @@ Field options:
 - `hint` (checkbox fields): grey description under the toggle label.
 
 Section options: `icon` (name from `js/icons.js`) and `subtitle` (line under the page title).
+
+## Presets
+
+`js/presets.js` → `PRESETS` array. Each preset: `id`, `group` (optgroup), `label`, `description`,
+`placeholders` (`"sectionId.fieldId"` → text; Examples list uses `examples.label` / `examples.content`),
+`suggestions` (same keys → chip strings; missing keys fall back to `DEFAULT_SUGGESTIONS`),
+`toggles` (`{ sectionId: { checkboxId: bool } }`, used by Fill example).
+"Fill example" = `builder.exampleValuesFor(preset)`: every placeholder becomes a value. A unit test checks all preset keys are valid and every example builds a full prompt.
+
+State: `values.meta.preset` (not part of the prompt; validated in `normalizeValues`).
 
 ## Spacing rules
 

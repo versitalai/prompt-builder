@@ -1,10 +1,11 @@
 // main.js — wiring. Holds app state and connects ui <-> builder <-> storage.
 
 import { SECTIONS } from './sections.js';
-import { buildPrompt, runChecks, sectionHasContent, wordCount, defaultValues } from './builder.js';
+import { buildPrompt, buildSection, sectionPosition, exampleValuesFor, runChecks, sectionHasContent, wordCount, defaultValues } from './builder.js';
+import { getPreset } from './presets.js';
 import * as store from './storage.js';
 import { icon } from './icons.js';
-import { el, withIcon, renderTabs, setActiveTab, setTabDots, renderSectionPanel, alertBox, toast, PREVIEW_ID } from './ui.js';
+import { el, withIcon, renderTabs, setActiveTab, setTabDots, renderSectionPanel, updateSectionPreview, renderPromptText, renderPresetBar, alertBox, toast, PREVIEW_ID } from './ui.js';
 
 const TAB_ORDER = [...SECTIONS.map((s) => s.id), PREVIEW_ID];
 const COPY_BUTTONS = ['copy-btn', 'top-copy', 'side-copy', 'mb-copy'];
@@ -26,8 +27,36 @@ function decorate() {
 }
 
 // ---------- Render ----------
+const preset = () => getPreset(values.meta?.preset);
+
 function renderSections() {
-  $('section-panels').replaceChildren(...SECTIONS.map((s, i) => renderSectionPanel(s, i, values, onFieldChange, go)));
+  const ctx = { values, onChange: onFieldChange, preset: preset() };
+  $('section-panels').replaceChildren(...SECTIONS.map((s, i) => renderSectionPanel(s, i, ctx, go)));
+  setActiveTab(active); // keep the current tab visible after a re-render
+  refreshSectionPreviews();
+}
+
+function refreshSectionPreviews() {
+  for (const s of SECTIONS) updateSectionPreview(s.id, buildSection(s.id, values), sectionPosition(s.id, values));
+}
+
+// ---------- Presets ----------
+function drawPresetBar() {
+  renderPresetBar($('preset-bar'), { presetId: preset().id, onPick: pickPreset, onFill: fillExample });
+}
+
+function pickPreset(id) {
+  values.meta.preset = id;
+  store.saveDraft(values);
+  renderSections();
+  $('preset-desc').textContent = preset().description;
+  toast(`Preset: ${preset().label}. Placeholders and suggestions updated.`);
+}
+
+function fillExample() {
+  if (!confirmReplace()) return;
+  replaceAll(exampleValuesFor(preset()));
+  toast(`Filled with the ${preset().label} example. Edit anything.`);
 }
 
 function go(dir) {
@@ -64,12 +93,14 @@ function refreshSummary() {
       icon(s.icon, 16), el('span', { class: 'lbl' }, s.label), pill));
   }));
   setTabDots(hasContent);
+  refreshSectionPreviews();
 }
 
 function refreshPreview() {
   const prompt = buildPrompt(values);
   const out = $('output');
-  out.textContent = prompt || 'Nothing here yet. Fill in a few tabs and your prompt appears here.';
+  if (prompt) renderPromptText(out, prompt);
+  else out.textContent = 'Nothing here yet. Fill in a few tabs, or pick a preset and tap "Fill example".';
   out.classList.toggle('empty', !prompt);
   $('counts').textContent = `${wordCount(prompt)} words · ${prompt.length} characters`;
 
@@ -109,6 +140,7 @@ function onFieldChange(sectionId, fieldId, value) {
 function replaceAll(next) {
   values = next;
   store.saveDraft(values);
+  drawPresetBar();
   renderSections();
   refreshSummary();
   select(active);
@@ -186,7 +218,9 @@ async function importJson(ev) {
 
 function clearAll() {
   if (!window.confirm('Clear every tab? Your saved library is not affected.')) return;
-  replaceAll(defaultValues());
+  const fresh = defaultValues();
+  fresh.meta.preset = preset().id; // clearing keeps your chosen preset
+  replaceAll(fresh);
   $('save-name').value = '';
   select(SECTIONS[0].id);
   toast('Cleared');
@@ -195,6 +229,7 @@ function clearAll() {
 // ---------- Boot ----------
 decorate();
 renderTabs($('tabs'), select);
+drawPresetBar();
 renderSections();
 refreshSummary();
 renderLibrary();

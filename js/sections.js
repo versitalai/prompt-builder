@@ -34,9 +34,9 @@ export const SECTIONS = [
     heading: 'Role',
     tip: 'Who is answering? AI "can be anybody, also nobody." Pick the expert you would actually ask. This narrows which knowledge the model draws from.',
     fields: [
-      { id: 'role', type: 'text', half: true, label: 'You are…', placeholder: 'a senior site reliability engineer at Cloudflare' },
-      { id: 'audience', type: 'text', half: true, label: 'Writing for…', placeholder: 'both customers and engineers' },
-      { id: 'perspective', type: 'textarea', label: 'Extra expertise / perspective (optional)', placeholder: '10 years running incident response; values radical transparency' },
+      { id: 'role', type: 'text', half: true, label: 'You are…', placeholder: "a gift advisor who knows outdoor sports gear" },
+      { id: 'audience', type: 'text', half: true, label: 'Writing for…', placeholder: "me, shopping for a friend" },
+      { id: 'perspective', type: 'textarea', label: 'Extra expertise / perspective (optional)', placeholder: "Practical; prefers useful gifts over novelty" },
     ],
     build(v) {
       const out = [];
@@ -58,8 +58,8 @@ export const SECTIONS = [
     heading: 'Task',
     tip: 'Think first, prompt second. If you can\'t explain it clearly yourself, you can\'t prompt it. Write the goal like you\'re handing it to a human.',
     fields: [
-      { id: 'task', type: 'textarea', label: 'What should the AI do?', placeholder: 'Write an apology email about yesterday\'s outage.' },
-      { id: 'goal', type: 'textarea', label: 'What does success look like?', placeholder: 'Customers trust us again and understand exactly what broke and what we changed.' },
+      { id: 'task', type: 'textarea', label: 'What should the AI do?', placeholder: "Give me birthday gift ideas for my friend." },
+      { id: 'goal', type: 'textarea', label: 'What does success look like?', placeholder: "I can buy one today and know it fits what they love." },
     ],
     build(v) {
       const out = [];
@@ -80,8 +80,8 @@ export const SECTIONS = [
     heading: 'Context',
     tip: 'Most important technique. Whatever you leave out, the model fills in by guessing. More context = fewer hallucinations. Always be contexting.',
     fields: [
-      { id: 'facts', type: 'textarea', label: 'Background facts', rows: 6, placeholder: 'On Nov 18, a bad config file doubled in size and crashed our proxy. ~20% of traffic failed for 3 hours…' },
-      { id: 'constraints', type: 'textarea', label: 'Constraints (one per line)', placeholder: 'Don\'t blame any vendor\nDon\'t promise dates we can\'t keep' },
+      { id: 'facts', type: 'textarea', label: 'Background facts', rows: 6, placeholder: "Budget is $30. My friend is 29, loves winter sports, and just switched from snowboarding to skiing." },
+      { id: 'constraints', type: 'textarea', label: 'Constraints (one per line)', placeholder: "Must arrive within 3 days\nNo gift cards" },
       { id: 'allowUnknown', type: 'checkbox', label: 'Allow "I don\'t know"', hint: 'The #1 hallucination fix. Without it, the AI guesses to please you.', default: true },
       { id: 'useSearch', type: 'checkbox', label: 'Search the web', hint: 'For anything after the model\'s training cutoff. Watch for bad sources.', default: false },
     ],
@@ -107,11 +107,11 @@ export const SECTIONS = [
     heading: 'Output format',
     tip: 'Tell it exactly how the result should look. Easy to forget, biggest punch. Tone alone can turn the same facts into a calm memo or a panicked rant.',
     fields: [
-      { id: 'outputType', type: 'text', half: true, label: 'Output type', placeholder: 'email with subject line' },
-      { id: 'length', type: 'text', half: true, label: 'Length', placeholder: 'under 200 words' },
-      { id: 'tone', type: 'text', half: true, label: 'Tone', placeholder: 'professional, apologetic, radically transparent' },
-      { id: 'avoid', type: 'text', half: true, label: 'Avoid', placeholder: 'corporate fluff, buzzwords' },
-      { id: 'structure', type: 'textarea', label: 'Structure (one item per line)', placeholder: 'Subject line\nBulleted timeline\nWhat we\'re changing' },
+      { id: 'outputType', type: 'text', half: true, label: 'Output type', placeholder: "numbered list" },
+      { id: 'length', type: 'text', half: true, label: 'Length', placeholder: "5 ideas, one line each" },
+      { id: 'tone', type: 'text', half: true, label: 'Tone', placeholder: "friendly, specific" },
+      { id: 'avoid', type: 'text', half: true, label: 'Avoid', placeholder: "generic ideas like mugs or socks" },
+      { id: 'structure', type: 'textarea', label: 'Structure (one item per line)', placeholder: "Idea\nPrice\nWhy it fits" },
     ],
     build(v) {
       const out = [];
@@ -143,8 +143,8 @@ export const SECTIONS = [
         label: 'Examples',
         addLabel: '+ Add example',
         itemFields: [
-          { id: 'label', type: 'text', label: 'What this shows', placeholder: 'Tone and ownership' },
-          { id: 'content', type: 'textarea', label: 'Example text', placeholder: 'We let you down today. I own that.' },
+          { id: 'label', type: 'text', label: 'What this shows', placeholder: "Level of detail" },
+          { id: 'content', type: 'textarea', label: 'Example text', placeholder: "1. Ski wax kit ($22): new skiers wax often and rarely own one." },
         ],
       },
     ],
@@ -173,11 +173,11 @@ export const SECTIONS = [
     tip: 'Optional. Chain of thought = show your work. Tree of thoughts = try several paths, keep the best. Battle of the bots = drafts get critiqued (AI critiques better than it writes).',
     fields: [
       { id: 'cot', type: 'checkbox', label: 'Chain of thought', hint: 'Think step by step before answering. More accuracy, and you can see its work.', default: false },
-      { id: 'cotSteps', type: 'textarea', label: 'Steps to follow (one per line, optional)', placeholder: 'List the facts\nIdentify what the customer cares about most\nDraft\nCheck every claim against the context', showIf: 'cot' },
+      { id: 'cotSteps', type: 'textarea', label: 'Steps to follow (one per line, optional)', placeholder: "List what they love\nFilter by budget\nPick the 5 most useful", showIf: 'cot' },
       { id: 'tot', type: 'checkbox', label: 'Tree of thoughts', hint: 'Explore several approaches, compare them, combine the best parts.', default: false },
-      { id: 'totBranches', type: 'textarea', label: 'Approaches (one per line; blank = AI picks 3)', placeholder: 'Radical transparency\nCustomer empathy first\nFuture-focused assurance', showIf: 'tot' },
+      { id: 'totBranches', type: 'textarea', label: 'Approaches (one per line; blank = AI picks 3)', placeholder: "Practical gear\nAn experience\nFunny / personal", showIf: 'tot' },
       { id: 'battle', type: 'checkbox', label: 'Battle of the bots', hint: 'Personas write drafts, a critic tears them apart, then they write one final version.', default: false },
-      { id: 'battlePersonas', type: 'textarea', label: 'Personas (one per line; LAST one is the critic)', placeholder: 'Engineer\nPR crisis manager\nAngry customer', showIf: 'battle' },
+      { id: 'battlePersonas', type: 'textarea', label: 'Personas (one per line; LAST one is the critic)', placeholder: "Gift advisor\nBest friend\nThe birthday person", showIf: 'battle' },
     ],
     build(v) {
       const out = [];

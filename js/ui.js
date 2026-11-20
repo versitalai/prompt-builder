@@ -5,9 +5,11 @@
 //   - consecutive checkbox fields -> one bordered toggle group (settings style)
 //   - a field with showIf: '<checkboxId>' renders inside that toggle's group, under it
 //   - consecutive fields with half: true -> side-by-side row (stacks on mobile)
+//   - placeholders + suggestion chips come from the active preset (presets.js)
 
 import { SECTIONS } from './sections.js';
 import { icon } from './icons.js';
+import { placeholderFor, suggestionsFor, groupedPresets, getPreset } from './presets.js';
 
 export const PREVIEW_ID = 'preview';
 
@@ -58,32 +60,54 @@ export function setTabDots(hasContentFn) {
 }
 
 // ---------- Fields ----------
-function textInput(field, value, onInput, id) {
+// ctx = { values, onChange(sectionId, fieldId, value), preset }
+
+function textInput(field, value, onInput, id, placeholder) {
   if (field.type === 'textarea') {
-    return el('textarea', { id, rows: field.rows || 3, placeholder: field.placeholder || '', value: value ?? '', oninput: (e) => onInput(e.target.value) });
+    return el('textarea', { id, rows: field.rows || 3, placeholder, value: value ?? '', oninput: (e) => onInput(e.target.value) });
   }
-  return el('input', { id, type: 'text', placeholder: field.placeholder || '', value: value ?? '', oninput: (e) => onInput(e.target.value) });
+  return el('input', { id, type: 'text', placeholder, value: value ?? '', oninput: (e) => onInput(e.target.value) });
 }
 
-function textField(section, field, values, onChange) {
+/** Tap-to-fill chips. Text inputs: replace. Textareas: add as a new line. */
+function chipRow(chips, input, onPick) {
+  if (!chips.length) return null;
+  return el('div', { class: 'chips', role: 'group', 'aria-label': 'Suggestions' },
+    ...chips.map((c) => el('button', { type: 'button', class: 'chip', onclick: () => {
+      let next = c;
+      if (input.tagName === 'TEXTAREA' && input.value.trim()) {
+        const lines = input.value.split('\n').map((l) => l.trim());
+        next = lines.includes(c) ? input.value : `${input.value.replace(/\s+$/, '')}\n${c}`;
+      }
+      input.value = next;
+      onPick(next);
+      input.focus();
+    } }, c)));
+}
+
+function textField(section, field, ctx) {
   const id = `f-${section.id}-${field.id}`;
+  const onInput = (val) => ctx.onChange(section.id, field.id, val);
+  const input = textInput(field, ctx.values[section.id][field.id], onInput, id, placeholderFor(ctx.preset, section.id, field.id, field.placeholder || ''));
   return el('div', { class: 'field', 'data-field': field.id },
     el('label', { class: 'field-label', for: id }, field.label),
-    textInput(field, values[section.id][field.id], (val) => onChange(section.id, field.id, val), id));
+    input,
+    chipRow(suggestionsFor(ctx.preset, section.id, field.id), input, onInput));
 }
 
-function toggleRow(section, field, values, onChange) {
+function toggleRow(section, field, ctx) {
   const id = `f-${section.id}-${field.id}`;
   return el('div', { class: 'toggle-row', 'data-field': field.id },
     el('div', { class: 'toggle-text' },
       el('label', { class: 'toggle-label', for: id }, field.label),
       field.hint ? el('p', { class: 'toggle-hint' }, field.hint) : null),
     el('span', { class: 'switch' },
-      el('input', { id, type: 'checkbox', role: 'switch', checked: !!values[section.id][field.id], onchange: (e) => onChange(section.id, field.id, e.target.checked) }),
+      el('input', { id, type: 'checkbox', role: 'switch', checked: !!ctx.values[section.id][field.id], onchange: (e) => ctx.onChange(section.id, field.id, e.target.checked) }),
       el('span', { class: 'slider' })));
 }
 
-function listField(section, field, values, onChange) {
+function listField(section, field, ctx) {
+  const { values, onChange } = ctx;
   const wrap = el('div', { class: 'field field-list', 'data-field': field.id });
   const prefix = `f-${section.id}-${field.id}`;
   const draw = (focusLast = false) => {
@@ -104,7 +128,7 @@ function listField(section, field, values, onChange) {
             textInput(sub, item[sub.id], (val) => {
               const next = values[section.id][field.id].map((it, i) => (i === idx ? { ...it, [sub.id]: val } : it));
               onChange(section.id, field.id, next);
-            }, id));
+            }, id, placeholderFor(ctx.preset, section.id, sub.id, sub.placeholder || '')));
         }))),
       el('button', { type: 'button', class: 'btn btn-dashed', onclick: () => {
         const blank = Object.fromEntries(field.itemFields.map((s) => [s.id, '']));
@@ -122,7 +146,7 @@ function listField(section, field, values, onChange) {
 }
 
 /** Group fields into rows / toggle groups per the layout rules at the top of this file. */
-function layoutFields(section, values, onChange) {
+function layoutFields(section, ctx) {
   const out = [];
   let group = null;
   let row = null;
@@ -130,17 +154,16 @@ function layoutFields(section, values, onChange) {
     if (f.type === 'checkbox') {
       row = null;
       if (!group) { group = el('div', { class: 'toggle-group' }); out.push(group); }
-      group.append(toggleRow(section, f, values, onChange));
+      group.append(toggleRow(section, f, ctx));
       continue;
     }
     if (f.showIf && group) {
-      const sub = el('div', { class: 'toggle-sub', 'data-show-if': f.showIf }, textField(section, f, values, onChange));
-      group.append(sub);
+      group.append(el('div', { class: 'toggle-sub', 'data-show-if': f.showIf }, textField(section, f, ctx)));
       continue;
     }
     group = null;
-    if (f.type === 'list') { row = null; out.push(listField(section, f, values, onChange)); continue; }
-    const node = textField(section, f, values, onChange);
+    if (f.type === 'list') { row = null; out.push(listField(section, f, ctx)); continue; }
+    const node = textField(section, f, ctx);
     if (f.half) {
       if (!row) { row = el('div', { class: 'field-row' }); out.push(row); }
       row.append(node);
@@ -159,11 +182,30 @@ export function applyShowIf(panel, sectionValues) {
   panel.querySelectorAll('[data-show-if]').forEach((n) => { n.hidden = !sectionValues[n.dataset.showIf]; });
 }
 
-export function renderSectionPanel(section, index, values, onChange, onNav) {
+// ---------- Prompt text rendering (safe: text nodes only) ----------
+/** Render markdown-ish prompt text into `pre` with light syntax colouring. Copy still uses the raw string. */
+export function renderPromptText(pre, text) {
+  const lines = text.split('\n');
+  pre.replaceChildren(...lines.flatMap((line, i) => {
+    let cls = null;
+    if (line.startsWith('### ')) cls = 'md-h3';
+    else if (line.startsWith('## ')) cls = 'md-h2';
+    else if (line.startsWith('> ')) cls = 'md-quote';
+    else if (/^\s*(- |\d+\. )/.test(line)) cls = 'md-li';
+    const node = cls ? el('span', { class: cls }, line) : document.createTextNode(line);
+    return i < lines.length - 1 ? [node, document.createTextNode('\n')] : [node];
+  }));
+}
+
+// ---------- Section panel ----------
+export function renderSectionPanel(section, index, ctx, onNav) {
   const panel = el('section', { class: 'panel', role: 'tabpanel', id: `panel-${section.id}`, 'data-panel': section.id, 'aria-labelledby': `tab-${section.id}`, hidden: true });
-  const wrapped = (sid, fid, val) => {
-    onChange(sid, fid, val);
-    if (typeof val === 'boolean') applyShowIf(panel, values[sid]);
+  const inner = {
+    ...ctx,
+    onChange: (sid, fid, val) => {
+      ctx.onChange(sid, fid, val);
+      if (typeof val === 'boolean') applyShowIf(panel, ctx.values[sid]);
+    },
   };
   panel.append(
     el('div', { class: 'page-head' },
@@ -171,13 +213,58 @@ export function renderSectionPanel(section, index, values, onChange, onNav) {
       section.subtitle ? el('p', { class: 'muted' }, section.subtitle) : null),
     el('div', { class: 'card' },
       el('div', { class: 'alert alert-tip' }, icon('bulb'), el('div', { class: 'alert-body' }, section.tip)),
-      ...layoutFields(section, values, wrapped)),
+      ...layoutFields(section, inner)),
+    el('div', { class: 'card section-preview' },
+      el('div', { class: 'card-head' },
+        el('div', {},
+          el('h2', { class: 'card-title' }, 'Section preview'),
+          el('p', { class: 'muted small', id: `pv-note-${section.id}` })),
+        el('span', { class: 'pill', id: `pv-pill-${section.id}` })),
+      el('pre', { class: 'output output-sm', id: `pv-${section.id}`, tabindex: '0', 'aria-live': 'polite' })),
     el('div', { class: 'panel-nav' },
       index > 0 ? el('button', { type: 'button', class: 'btn btn-ghost', onclick: () => onNav(-1) }, ...withIcon('arrowLeft', 'Back')) : el('span'),
       el('button', { type: 'button', class: 'btn btn-primary', onclick: () => onNav(1) }, el('span', {}, 'Next'), icon('arrowRight', 16))),
   );
-  applyShowIf(panel, values[section.id]);
+  applyShowIf(panel, ctx.values[section.id]);
   return panel;
+}
+
+/** Update one tab's preview card. pos = {position,total} or null (skipped). */
+export function updateSectionPreview(sectionId, text, pos) {
+  const pre = document.getElementById(`pv-${sectionId}`);
+  if (!pre) return;
+  const pill = document.getElementById(`pv-pill-${sectionId}`);
+  const note = document.getElementById(`pv-note-${sectionId}`);
+  if (text) {
+    renderPromptText(pre, text);
+    pre.classList.remove('empty');
+    pill.className = 'pill pill-ok';
+    pill.textContent = 'Included';
+    note.textContent = `Exactly what this tab adds. Part ${pos.position} of ${pos.total} in your prompt.`;
+  } else {
+    pre.textContent = 'Nothing yet. This section is left out of your prompt until you fill something in.';
+    pre.classList.add('empty');
+    pill.className = 'pill pill-empty';
+    pill.textContent = 'Skipped';
+    note.textContent = 'Exactly what this tab adds to your prompt.';
+  }
+}
+
+// ---------- Preset picker ----------
+export function renderPresetBar(host, { presetId, onPick, onFill }) {
+  const id = 'preset-select';
+  const select = el('select', { id, class: 'select', onchange: (e) => onPick(e.target.value) },
+    ...groupedPresets().map(([group, list]) => el('optgroup', { label: group },
+      ...list.map((p) => el('option', { value: p.id }, p.label)))));
+  select.value = presetId;
+  const desc = el('p', { class: 'muted small preset-desc', id: 'preset-desc' }, getPreset(presetId).description);
+  host.replaceChildren(
+    el('div', { class: 'preset-text' },
+      el('label', { class: 'field-label', for: id }, 'What are you making?'),
+      desc),
+    el('div', { class: 'preset-controls' },
+      el('div', { class: 'select-wrap' }, select, icon('chevron', 16)),
+      el('button', { type: 'button', class: 'btn btn-secondary', id: 'fill-example', onclick: onFill }, ...withIcon('sparkles', 'Fill example'))));
 }
 
 // ---------- Alerts ----------

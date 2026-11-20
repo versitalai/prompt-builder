@@ -2,10 +2,11 @@
 // Pure = easy to unit test (see tests/builder.test.mjs).
 
 import { SECTIONS } from './sections.js';
+import { PRESETS, DEFAULT_PRESET_ID, placeholderFor } from './presets.js';
 
-/** Default values for every field, from sections.js. */
+/** Default values for every field, from sections.js. `meta` holds non-prompt state (chosen preset). */
 export function defaultValues() {
-  const values = {};
+  const values = { meta: { preset: DEFAULT_PRESET_ID } };
   for (const s of SECTIONS) {
     values[s.id] = {};
     for (const f of s.fields) {
@@ -21,6 +22,8 @@ export function defaultValues() {
 export function normalizeValues(saved) {
   const base = defaultValues();
   if (!saved || typeof saved !== 'object') return base;
+  const presetId = saved.meta?.preset;
+  if (typeof presetId === 'string' && PRESETS.some((p) => p.id === presetId)) base.meta.preset = presetId;
   for (const s of SECTIONS) {
     const src = saved[s.id];
     if (!src || typeof src !== 'object') continue;
@@ -35,14 +38,38 @@ export function normalizeValues(saved) {
   return base;
 }
 
+/** Values built from a preset's placeholders + toggles ("Fill example"). */
+export function exampleValuesFor(preset) {
+  const values = defaultValues();
+  values.meta.preset = preset.id;
+  for (const s of SECTIONS) {
+    for (const f of s.fields) {
+      if (f.type === 'checkbox') values[s.id][f.id] = preset.toggles?.[s.id]?.[f.id] ?? f.default ?? false;
+      else if (f.type === 'list') values[s.id][f.id] = [Object.fromEntries(f.itemFields.map((sub) => [sub.id, placeholderFor(preset, s.id, sub.id, sub.placeholder || '')]))];
+      else values[s.id][f.id] = placeholderFor(preset, s.id, f.id, f.placeholder || '');
+    }
+  }
+  return values;
+}
+
+/** One section's block ("## Heading\nbody"), or '' if it adds nothing. */
+export function buildSection(sectionId, values) {
+  const s = SECTIONS.find((x) => x.id === sectionId);
+  if (!s) return '';
+  const body = (s.build(values[s.id] || {}) || '').trim();
+  return body ? `## ${s.heading}\n${body}` : '';
+}
+
+/** Where a section lands in the final prompt: {position, total} (1-based), or null if skipped. */
+export function sectionPosition(sectionId, values) {
+  const included = SECTIONS.filter((s) => buildSection(s.id, values)).map((s) => s.id);
+  const i = included.indexOf(sectionId);
+  return i < 0 ? null : { position: i + 1, total: included.length };
+}
+
 /** Build the final markdown prompt. Empty sections are skipped. */
 export function buildPrompt(values) {
-  const parts = [];
-  for (const s of SECTIONS) {
-    const body = (s.build(values[s.id] || {}) || '').trim();
-    if (body) parts.push(`## ${s.heading}\n${body}`);
-  }
-  return parts.join('\n\n');
+  return SECTIONS.map((s) => buildSection(s.id, values)).filter(Boolean).join('\n\n');
 }
 
 /** Clarity warnings for the Preview tab. */

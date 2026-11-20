@@ -9,7 +9,7 @@ time.sleep(1)
 
 # Expected vertical gap between consecutive visible children, per container.
 EXPECT = {
-  ".panel": 24, ".page-head": 4, ".card": 16, ".field:not(.field-list)": 8, ".field-list": 16, ".list-item": 16,
+  ".panel": 24, ".col-main": 24, ".preset-text": 4, ".page-head": 4, ".card": 16, ".field:not(.field-list)": 8, ".field-list": 16, ".list-item": 16,
   ".toggle-text": 4, ".checks": 12, ".summary-actions": 8, ".col-side": 24, ".alert > div": 4,
   ".card-head > div": 4, ".tip-card > div": 4, ".summary-stats > div": 4,
 }
@@ -21,7 +21,7 @@ JS = """(expect) => {
       const kids = [...c.children].filter((k) => k.offsetParent && k.getBoundingClientRect().height > 0);
       for (let i = 1; i < kids.length; i++) {
         const a = kids[i-1].getBoundingClientRect(), b = kids[i].getBoundingClientRect();
-        if (Math.abs(b.top - a.top) < 2) continue; // same row (side by side)
+        if (Math.abs(b.top - a.top) < 2 || b.left >= a.right - 1) continue; // same row (side by side)
         const gap = Math.round(b.top - a.bottom);
         if (gap !== want) out.push({sel, want, gap, a: kids[i-1].className || kids[i-1].tagName, b: kids[i].className || kids[i].tagName});
       }

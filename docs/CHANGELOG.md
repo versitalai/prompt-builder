@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.2.0 — 2026-11-20
+
+- **Section preview** on every tab: live view of exactly what that tab adds (markdown block), an Included/Skipped pill, and "Part X of Y" position in the final prompt.
+- **Presets** ("What are you making?"), 14 across 5 groups:
+  General · Writing (Email / message, Essay / article, Social post) · Creative (Story, Image prompt) ·
+  Code (Roblox / Luau script, Code feature, Debug an error) · Study (Explain a concept, Quiz / flashcards) ·
+  Plans & data (Game design doc, Project plan, Data → table / JSON, Research summary).
+  Each preset swaps every placeholder, adds tap-to-fill suggestion chips, and has a **Fill example** button.
+  Presets never change typed text; Fill example asks first if tabs aren't empty.
+- Default placeholders are now general-purpose (birthday-gift example); the Cloudflare email lives in the Email preset.
+- Light syntax colouring in previews (headings, quotes, lists). Copy still uses raw text.
+- Chosen preset saved with the draft, library entries, and exports (`values.meta.preset`).
+
 ## 1.1.0 — 2026-11-20
 
 Full UI redesign, based on reference designs the user supplied (dashboard form, settings page, component kit).

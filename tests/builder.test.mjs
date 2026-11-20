@@ -73,3 +73,54 @@ test('wordCount', () => {
   assert.equal(wordCount(''), 0);
   assert.equal(wordCount(' a  b\nc '), 3);
 });
+
+import { buildSection, sectionPosition } from '../js/builder.js';
+
+test('buildSection matches its block in buildPrompt; position counts only included sections', () => {
+  const v = defaultValues();
+  v.persona.role = 'a tutor';
+  v.format.tone = 'friendly';
+  const full = buildPrompt(v);
+  for (const id of ['persona', 'context', 'format']) assert.ok(full.includes(buildSection(id, v)));
+  assert.equal(buildSection('task', v), '');
+  assert.equal(sectionPosition('task', v), null);
+  assert.deepEqual(sectionPosition('persona', v), { position: 1, total: 3 }); // persona, context(default "I don't know"), format
+  assert.deepEqual(sectionPosition('format', v), { position: 3, total: 3 });
+  assert.equal(buildSection('nope', v), '');
+});
+
+import { exampleValuesFor } from '../js/builder.js';
+import { PRESETS, getPreset, suggestionsFor, placeholderFor } from '../js/presets.js';
+import { SECTIONS } from '../js/sections.js';
+
+test('presets: unique ids, valid keys, every example builds a full prompt', () => {
+  const ids = PRESETS.map((p) => p.id);
+  assert.equal(new Set(ids).size, ids.length);
+  const validKeys = new Set();
+  for (const s of SECTIONS) for (const f of s.fields) {
+    validKeys.add(`${s.id}.${f.id}`);
+    for (const sub of f.itemFields || []) validKeys.add(`${s.id}.${sub.id}`);
+  }
+  for (const p of PRESETS) {
+    for (const k of Object.keys(p.placeholders || {})) assert.ok(validKeys.has(k), `${p.id}: bad placeholder key ${k}`);
+    for (const k of Object.keys(p.suggestions || {})) assert.ok(validKeys.has(k), `${p.id}: bad suggestion key ${k}`);
+    for (const [sid, t] of Object.entries(p.toggles || {})) for (const fid of Object.keys(t)) assert.ok(validKeys.has(`${sid}.${fid}`), `${p.id}: bad toggle ${sid}.${fid}`);
+    const v = exampleValuesFor(p);
+    const out = buildPrompt(v);
+    for (const h of ['## Role', '## Task', '## Context', '## Output format', '## Examples']) assert.ok(out.includes(h), `${p.id} missing ${h}`);
+    assert.equal(v.meta.preset, p.id);
+  }
+});
+
+test('preset helpers fall back correctly; meta survives normalize', () => {
+  const g = getPreset('nope');
+  assert.equal(g.id, 'general');
+  assert.equal(placeholderFor(getPreset('email'), 'task', 'task').includes('apology'), true);
+  assert.equal(placeholderFor(g, 'task', 'task', 'fallback'), 'fallback');
+  assert.ok(suggestionsFor(g, 'format', 'tone').length > 0);          // default chips
+  assert.ok(suggestionsFor(getPreset('roblox'), 'format', 'outputType').some((x) => x.includes('Luau')));
+  assert.deepEqual(suggestionsFor(g, 'task', 'task'), []);
+  assert.equal(normalizeValues({ meta: { preset: 'roblox' } }).meta.preset, 'roblox');
+  assert.equal(normalizeValues({ meta: { preset: 'hacker' } }).meta.preset, 'general');
+  assert.ok(!buildPrompt(defaultValues()).includes('meta'));
+});
