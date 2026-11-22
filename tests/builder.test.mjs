@@ -124,3 +124,16 @@ test('preset helpers fall back correctly; meta survives normalize', () => {
   assert.equal(normalizeValues({ meta: { preset: 'hacker' } }).meta.preset, 'general');
   assert.ok(!buildPrompt(defaultValues()).includes('meta'));
 });
+
+import { RULES, CHECKLIST, SOURCE } from '../js/rules.js';
+
+test('rules: unique ids, links point at real tabs, quotes stay short', () => {
+  const tabs = new Set(SECTIONS.map((s) => s.id));
+  assert.equal(new Set(RULES.map((r) => r.id)).size, RULES.length);
+  for (const r of [...RULES, ...CHECKLIST]) if (r.tab) assert.ok(tabs.has(r.tab), `bad tab ${r.tab}`);
+  for (const r of RULES) {
+    assert.ok(r.quotes.length >= 1 && r.quotes.length <= 2, `${r.id}: 1–2 quotes`);
+    for (const q of r.quotes) assert.ok(q.text.split(/\s+/).length <= 25, `${r.id}: quote too long`);
+  }
+  assert.match(SOURCE.url, /^https:\/\/www\.youtube\.com\//);
+});

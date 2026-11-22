@@ -5,7 +5,8 @@ import { buildPrompt, buildSection, sectionPosition, exampleValuesFor, runChecks
 import { getPreset } from './presets.js';
 import * as store from './storage.js';
 import { icon } from './icons.js';
-import { el, withIcon, renderTabs, setActiveTab, setTabDots, renderSectionPanel, updateSectionPreview, renderPromptText, renderPresetBar, alertBox, toast, PREVIEW_ID } from './ui.js';
+import { el, withIcon, renderTabs, setActiveTab, setTabDots, renderSectionPanel, updateSectionPreview, renderPromptText, renderPresetBar, renderRulesPanel, alertBox, toast, PREVIEW_ID, RULES_ID, EXTRA_TABS } from './ui.js';
+import { RULES, CHECKLIST, SOURCE } from './rules.js';
 
 const TAB_ORDER = [...SECTIONS.map((s) => s.id), PREVIEW_ID];
 const COPY_BUTTONS = ['copy-btn', 'top-copy', 'side-copy', 'mb-copy'];
@@ -67,7 +68,8 @@ function go(dir) {
 function select(id) {
   active = id;
   setActiveTab(id);
-  $('crumb').textContent = id === PREVIEW_ID ? 'Preview & Copy' : SECTIONS.find((s) => s.id === id).label;
+  $('crumb').textContent = (EXTRA_TABS.find((t) => t.id === id) || SECTIONS.find((s) => s.id === id)).label;
+  $('preset-bar').hidden = id === RULES_ID; // presets don't apply to the Rules page
   if (id === PREVIEW_ID) refreshPreview();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -168,6 +170,11 @@ function confirmReplace() {
 async function copyPrompt() {
   const text = buildPrompt(values);
   if (!text) return;
+  if (await copyText(text)) toast('Copied! Paste it into your AI.');
+}
+
+/** Copy any text. Returns true on success (toasts on failure). */
+async function copyText(text) {
   try {
     await navigator.clipboard.writeText(text);
   } catch {
@@ -179,9 +186,9 @@ async function copyPrompt() {
     ta.select();
     const ok = document.execCommand('copy');
     ta.remove();
-    if (!ok) return toast('Copy failed. Select the text and copy manually.', 'error');
+    if (!ok) { toast('Copy failed. Select the text and copy manually.', 'error'); return false; }
   }
-  toast('Copied! Paste it into your AI.');
+  return true;
 }
 
 function savePrompt(ev) {
@@ -231,6 +238,7 @@ decorate();
 renderTabs($('tabs'), select);
 drawPresetBar();
 renderSections();
+renderRulesPanel($('panel-rules'), { rules: RULES, checklist: CHECKLIST, source: SOURCE, onGo: select, onCopy: async (t) => { if (await copyText(t)) toast('Copied example line'); } });
 refreshSummary();
 renderLibrary();
 select(active);

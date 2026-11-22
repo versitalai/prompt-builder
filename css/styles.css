@@ -141,7 +141,7 @@ h1, h2, h3 { letter-spacing: -0.01em; line-height: 1.25; }
 }
 .tab.filled .tab-status { border-color: var(--ok); background: var(--ok); color: #fff; }
 .tab[data-tab="preview"] { margin-top: var(--sp-3); } /* separates the output tab from the 6 input tabs */
-.tab[data-tab="preview"] .tab-status { display: none; }
+.tab[data-tab="preview"] .tab-status, .tab[data-tab="rules"] .tab-status { display: none; }
 
 /* ---------- Page + cards ---------- */
 .panel { display: flex; flex-direction: column; gap: var(--sp-6); animation: fade .18s ease; }
@@ -182,6 +182,20 @@ h1, h2, h3 { letter-spacing: -0.01em; line-height: 1.25; }
 }
 .chip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- Rules page ---------- */
+.checklist { margin: 0; padding-left: var(--sp-6); display: flex; flex-direction: column; gap: var(--sp-2); }
+.checklist li { padding-left: var(--sp-1); }
+.checklist li > span { margin-right: var(--sp-2); }
+.rule-title { flex-direction: row !important; align-items: center; gap: var(--sp-2) !important; }
+.rule-summary { color: var(--text-2); }
+.rule-quote { margin: 0; padding: var(--sp-3) var(--sp-4); border-left: 3px solid var(--accent); border-radius: 0 var(--r-sm) var(--r-sm) 0; background: var(--accent-soft); display: flex; flex-direction: column; gap: var(--sp-1); }
+.rule-quote p { font-style: italic; color: var(--text); }
+.rule-quote cite { font-style: normal; font-size: 0.8rem; color: var(--muted); }
+.try { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-4); border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--surface-muted); }
+.try-label { flex: 0 0 auto; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--accent); }
+.try code { flex: 1; min-width: 0; font: 0.82rem/1.5 var(--mono); color: var(--text); }
+.panel a { color: var(--accent); font-weight: 600; }
 
 /* ---------- Alerts (tip + clarity check) ---------- */
 .checks { display: flex; flex-direction: column; gap: var(--sp-3); }
@@ -395,6 +409,10 @@ h1, h2, h3 { letter-spacing: -0.01em; line-height: 1.25; }
   .save-row { flex-direction: column; }
   .card-head { flex-direction: column; align-items: stretch; }
   .section-preview .card-head { flex-direction: row; align-items: flex-start; }
+  .rule .card-head { align-items: flex-start; }
+  .rule .card-head > .link { align-self: flex-start; }
+  .try { flex-wrap: wrap; gap: var(--sp-2) var(--sp-3); padding: var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-4); }
+  .try-label { flex-basis: 100%; }
   .preset-controls { flex-direction: column; }
   .preset-controls .btn { width: 100%; }
   .lib-tools .btn-danger { margin-left: 0; }

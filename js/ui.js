@@ -12,6 +12,13 @@ import { icon } from './icons.js';
 import { placeholderFor, suggestionsFor, groupedPresets, getPreset } from './presets.js';
 
 export const PREVIEW_ID = 'preview';
+export const RULES_ID = 'rules';
+/** Tabs that aren't prompt sections (no fill status). */
+export const EXTRA_TABS = [
+  { id: PREVIEW_ID, label: 'Preview & Copy', icon: 'clipboard' },
+  { id: RULES_ID, label: 'Rules', icon: 'book' },
+];
+const isExtra = (id) => EXTRA_TABS.some((t) => t.id === id);
 
 /** Tiny element helper. Children can be strings or nodes. Text is never parsed as HTML. */
 export function el(tag, attrs = {}, ...children) {
@@ -35,7 +42,7 @@ export const withIcon = (name, text) => [icon(name, 16), el('span', {}, text)];
 
 // ---------- Nav ----------
 export function renderTabs(nav, onSelect) {
-  const all = [...SECTIONS.map((s) => ({ id: s.id, label: s.label, icon: s.icon })), { id: PREVIEW_ID, label: 'Preview & Copy', icon: 'clipboard' }];
+  const all = [...SECTIONS.map((s) => ({ id: s.id, label: s.label, icon: s.icon })), ...EXTRA_TABS];
   nav.replaceChildren(...all.map((t) => el('button', {
     class: 'tab', role: 'tab', type: 'button', id: `tab-${t.id}`,
     'aria-controls': `panel-${t.id}`, 'data-tab': t.id,
@@ -55,7 +62,7 @@ export function setActiveTab(id) {
 
 export function setTabDots(hasContentFn) {
   document.querySelectorAll('.tab').forEach((b) => {
-    b.classList.toggle('filled', b.dataset.tab !== PREVIEW_ID && hasContentFn(b.dataset.tab));
+    b.classList.toggle('filled', !isExtra(b.dataset.tab) && hasContentFn(b.dataset.tab));
   });
 }
 
@@ -265,6 +272,35 @@ export function renderPresetBar(host, { presetId, onPick, onFill }) {
     el('div', { class: 'preset-controls' },
       el('div', { class: 'select-wrap' }, select, icon('chevron', 16)),
       el('button', { type: 'button', class: 'btn btn-secondary', id: 'fill-example', onclick: onFill }, ...withIcon('sparkles', 'Fill example'))));
+}
+
+// ---------- Rules page ----------
+/** Render the Rules page (data: rules.js). onGo(tabId) jumps to a tab; onCopy(text) copies a "Try" line. */
+export function renderRulesPanel(host, { rules, checklist, source, onGo, onCopy }) {
+  const tabLabel = (id) => SECTIONS.find((s) => s.id === id)?.label || id;
+  const goLink = (id) => el('button', { type: 'button', class: 'link', onclick: () => onGo(id) }, `Go to ${tabLabel(id)} →`);
+  host.replaceChildren(
+    el('div', { class: 'page-head' },
+      el('h1', {}, 'Prompting rules'),
+      el('p', { class: 'muted' }, 'The rules from the video this builder is based on. Each tab follows one of them.')),
+    el('div', { class: 'card' },
+      el('h2', { class: 'card-title' }, 'Quick checklist'),
+      el('ol', { class: 'checklist' }, ...checklist.map((c) => el('li', {}, el('span', {}, c.text), goLink(c.tab))))),
+    ...rules.map((r, i) => el('article', { class: 'card rule', id: `rule-${r.id}` },
+      el('div', { class: 'card-head' },
+        el('div', { class: 'rule-title' }, el('span', { class: 'badge-num' }, String(i + 1)), el('h2', { class: 'card-title' }, r.title)),
+        r.tab ? goLink(r.tab) : null),
+      el('p', { class: 'rule-summary' }, r.summary),
+      ...r.quotes.map((q) => el('blockquote', { class: 'rule-quote' },
+        el('p', {}, `“${q.text}”`),
+        el('cite', {}, `— ${q.by || source.by}`))),
+      r.tryLine ? el('div', { class: 'try' },
+        el('span', { class: 'try-label' }, 'Try'),
+        el('code', {}, r.tryLine),
+        el('button', { type: 'button', class: 'btn btn-ghost btn-sm btn-icon', title: 'Copy', 'aria-label': `Copy example for ${r.title}`, onclick: () => onCopy(r.tryLine) }, icon('copy', 15))) : null)),
+    el('p', { class: 'muted small' }, 'Source: ',
+      el('a', { href: source.url, target: '_blank', rel: 'noopener' }, source.title), `, ${source.by}. Quotes are short excerpts from the auto-captions.`),
+  );
 }
 
 // ---------- Alerts ----------

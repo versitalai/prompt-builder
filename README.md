@@ -17,6 +17,7 @@ Based on the techniques in NetworkChuck's video [*You SUCK at Prompting AI (Here
 | 5 | Examples | `## Examples`: short snippets to imitate | Few-shot prompting |
 | 6 | Advanced | `## Approach`: chain of thought, tree of thoughts, battle of the bots | Advanced techniques |
 | 7 | Preview & Copy | Final prompt, clarity check, copy button, prompt library | Prompt library |
+| – | Rules | Not part of the prompt. The rules, checklist and example lines | All |
 
 Empty tabs are left out of the final prompt.
 
@@ -24,6 +25,7 @@ Empty tabs are left out of the final prompt.
 
 - **Presets**: pick what you're making (game design doc, Roblox script, essay, quiz, image prompt, and more). Placeholders and suggestion chips change to match, and **Fill example** loads a complete worked example.
 - **Section preview**: every tab shows exactly what it adds to the final prompt, live.
+- **Rules page**: the 10 rules from the video, a quick checklist, copyable example lines, and links to the matching tabs.
 
 - **Autosave**: your inputs survive a page refresh (stored in your browser).
 - **Prompt library**: name and save prompts that work, then load them later.

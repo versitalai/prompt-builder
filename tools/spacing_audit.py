@@ -9,7 +9,7 @@ time.sleep(1)
 
 # Expected vertical gap between consecutive visible children, per container.
 EXPECT = {
-  ".panel": 24, ".col-main": 24, ".preset-text": 4, ".page-head": 4, ".card": 16, ".field:not(.field-list)": 8, ".field-list": 16, ".list-item": 16,
+  ".panel": 24, ".col-main": 24, ".preset-text": 4, ".rule-quote": 4, ".checklist": 8, ".page-head": 4, ".card": 16, ".field:not(.field-list)": 8, ".field-list": 16, ".list-item": 16,
   ".toggle-text": 4, ".checks": 12, ".summary-actions": 8, ".col-side": 24, ".alert > div": 4,
   ".card-head > div": 4, ".tip-card > div": 4, ".summary-stats > div": 4,
 }
@@ -42,7 +42,7 @@ try:
             pg.click("#tab-examples"); pg.click("#panel-examples .btn-dashed"); pg.click("#panel-examples .btn-dashed")
             pg.click("#tab-advanced")
             for t in ["cot", "tot", "battle"]: pg.check(f"#f-advanced-{t}")
-            for tab in ["persona", "task", "context", "format", "examples", "advanced", "preview"]:
+            for tab in ["persona", "task", "context", "format", "examples", "advanced", "preview", "rules"]:
                 pg.click(f"#tab-{tab}"); time.sleep(0.05)
                 for r in pg.evaluate(JS, EXPECT):
                     r["view"], r["tab"] = name, tab

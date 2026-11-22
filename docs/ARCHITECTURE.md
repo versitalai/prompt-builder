@@ -11,6 +11,7 @@ js/storage.js       localStorage: draft autosave, library, export/import
 js/ui.js            DOM rendering, generic over sections.js (layout rules at top of file)
 js/icons.js         inline SVG icon set (static strings only)
 js/presets.js       DATA: use-case presets (placeholders, chips, example toggles)  ← edit to add presets
+js/rules.js         DATA: Rules page (rules, quick checklist, source link)  ← edit to change rules
 js/main.js          wiring: state, events, actions
 tests/              node:test unit tests for builder.js
 tools/              spacing_audit.py (Playwright layout check)
@@ -68,6 +69,10 @@ Field options:
 - `hint` (checkbox fields): grey description under the toggle label.
 
 Section options: `icon` (name from `js/icons.js`) and `subtitle` (line under the page title).
+
+## Extra tabs
+
+`ui.EXTRA_TABS` = tabs that aren't prompt sections (Preview & Copy, Rules): no fill status, not in Next/Back order. The Rules panel is rendered by `ui.renderRulesPanel()` from `js/rules.js`.
 
 ## Presets
 

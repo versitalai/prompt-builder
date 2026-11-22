@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.0 — 2026-11-22
+
+- **Rules page** (new nav item after Preview & Copy): the 10 prompting rules from the video, each with a one-line summary, 1–2 short quotes, a copyable "Try" line, and a "Go to <tab>" link. A 7-item quick checklist sits on top.
+- Rules content lives in `js/rules.js` (data only). A unit test checks each rule's tab link exists and every quote stays under 25 words.
+- The preset bar hides on the Rules page. A shared `copyText()` helper is used by Copy prompt and the Try lines.
+
 ## 1.2.0 — 2026-11-20
 
 - **Section preview** on every tab: live view of exactly what that tab adds (markdown block), an Included/Skipped pill, and "Part X of Y" position in the final prompt.
